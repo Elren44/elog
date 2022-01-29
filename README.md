@@ -6,7 +6,7 @@
 go get github.com/Elren44/elog
 ```
 
-## Example
+## Example  json log
 
 ```
 package main
@@ -14,7 +14,19 @@ package main
 import "github.com/Elren44/elog"
 
 func main() {
-	log := elog.InitLogger()
+	log := elog.InitLogger(elog.JsonOutput)
 	log.Info("test logs")
 }
 ```
+
+## Example console log
+
+```
+package main
+
+import "github.com/Elren44/elog"
+
+func main() {
+	log := elog.InitLogger(elog.ConsoleOutput)
+	log.Info("test logs")
+}
