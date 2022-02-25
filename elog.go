@@ -32,10 +32,12 @@ func (s *consoleOutput) getElogString() string {
 	return s.output
 }
 
+//JsonOutput: use this variable as parameter to InitLogger or InitFileLogger function
 var JsonOutput = &jsonOutput{
 	output: "json",
 }
 
+//ConsoleOutput: use this variable as parameter to InitLogger or InitFileLogger function
 var ConsoleOutput = &consoleOutput{
 	output: "console",
 }
