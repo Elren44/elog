@@ -9,13 +9,41 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-const JsonOutput = "json"
-const ConsoleOutput = "console"
+//ElogOutput output type interface
+type ElogOutput interface {
+	getElogString() string
+}
 
-//InitLogger initialize logger wito file log
-func InitFileLogger(t string) *zap.SugaredLogger {
+//JsonOutput json log format
+type jsonOutput struct {
+	output string
+}
+
+func (s *jsonOutput) getElogString() string {
+	return s.output
+}
+
+//ConsoleOutput base log format
+type consoleOutput struct {
+	output string
+}
+
+func (s *consoleOutput) getElogString() string {
+	return s.output
+}
+
+var JsonOutput = &jsonOutput{
+	output: "json",
+}
+
+var ConsoleOutput = &consoleOutput{
+	output: "console",
+}
+
+//InitLogger initialize logger with file log
+func InitFileLogger(t ElogOutput) *zap.SugaredLogger {
 	var sl *zap.SugaredLogger
-	encoder := getEncoder(t)
+	encoder := getEncoder(t.getElogString())
 	fileSyncer := getLogWriter()
 	ws := zapcore.NewMultiWriteSyncer(os.Stdout, fileSyncer)
 	core := zapcore.NewCore(encoder, ws, zapcore.DebugLevel)
@@ -25,9 +53,9 @@ func InitFileLogger(t string) *zap.SugaredLogger {
 }
 
 //InitLogger initialize logger witout file log
-func InitLogger(t string) *zap.SugaredLogger {
+func InitLogger(t ElogOutput) *zap.SugaredLogger {
 	var sl *zap.SugaredLogger
-	encoder := getEncoder(t)
+	encoder := getEncoder(t.getElogString())
 	ws := zapcore.NewMultiWriteSyncer(os.Stdout)
 	core := zapcore.NewCore(encoder, ws, zapcore.DebugLevel)
 	logger := zap.New(core, zap.AddCaller())
