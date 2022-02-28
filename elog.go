@@ -42,11 +42,11 @@ var ConsoleOutput = &consoleOutput{
 	output: "console",
 }
 
-//InitLogger initialize logger with file log
-func InitFileLogger(t ElogOutput) *zap.SugaredLogger {
+//InitLogger initialize logger with file log, output = elog.ConsoleOutput or elog.JsonOutput. logFilePath - path to log file. If an empty string is entered, default logFilePath = "./logs/logs.log"
+func InitFileLogger(t ElogOutput, logFilePath string) *zap.SugaredLogger {
 	var sl *zap.SugaredLogger
 	encoder := getEncoder(t.getElogString())
-	fileSyncer := getLogWriter()
+	fileSyncer := getLogWriter(logFilePath)
 	ws := zapcore.NewMultiWriteSyncer(os.Stdout, fileSyncer)
 	core := zapcore.NewCore(encoder, ws, zapcore.DebugLevel)
 	logger := zap.New(core, zap.AddCaller())
@@ -54,7 +54,7 @@ func InitFileLogger(t ElogOutput) *zap.SugaredLogger {
 	return sl
 }
 
-//InitLogger initialize logger witout file log
+//InitLogger initialize logger witout file log, output = elog.ConsoleOutput or elog.JsonOutput
 func InitLogger(t ElogOutput) *zap.SugaredLogger {
 	var sl *zap.SugaredLogger
 	encoder := getEncoder(t.getElogString())
@@ -65,13 +65,13 @@ func InitLogger(t ElogOutput) *zap.SugaredLogger {
 	return sl
 }
 
-func SyslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("02 Jan 06 15:04 -0700"))
 }
 
 func getEncoder(t string) zapcore.Encoder {
 	encoderConfig := zap.NewDevelopmentEncoderConfig()
-	encoderConfig.EncodeTime = SyslogTimeEncoder
+	encoderConfig.EncodeTime = syslogTimeEncoder
 	encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoderConfig.FunctionKey = "func"
 	encoderConfig.TimeKey = "time"
@@ -87,13 +87,17 @@ func getEncoder(t string) zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getLogWriter() zapcore.WriteSyncer {
+func getLogWriter(logFilePath string) zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{
-		Filename:   "./logs/test.log",
+		Filename:   "./logs/logs.log",
 		MaxSize:    10,
 		MaxBackups: 5,
 		MaxAge:     30,
 		Compress:   false,
 	}
+	if logFilePath == "" {
+		return zapcore.AddSync(lumberJackLogger)
+	}
+	lumberJackLogger.Filename = logFilePath
 	return zapcore.AddSync(lumberJackLogger)
 }
